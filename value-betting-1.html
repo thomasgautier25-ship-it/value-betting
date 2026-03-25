@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Value Betting — Winamax AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080c10;--sur:#0e1318;--sur2:#111820;--bdr:#1a2230;--grn:#00e676;--red:#ff3d57;--gld:#ffd740;--pur:#bf7cff;--ten:#a8ff3e;--fbl:#40c4ff;--txt:#e8f0fe;--mut:#4a5568}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,230,118,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,230,118,.025) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0}
+.wrap{max-width:1060px;margin:0 auto;padding:40px 20px;position:relative;z-index:1}
+.hdr{text-align:center;margin-bottom:52px}
+.hdr-tag{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:4px;color:var(--grn);text-transform:uppercase;margin-bottom:14px;opacity:0;animation:up .5s .1s forwards}
+.hdr h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(56px,11vw,104px);letter-spacing:6px;line-height:.88;background:linear-gradient(140deg,#fff 35%,var(--grn));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;opacity:0;animation:up .5s .2s forwards}
+.hdr-sub{font-family:'DM Mono',monospace;font-size:12px;color:var(--mut);margin-top:18px;opacity:0;animation:up .5s .3s forwards}
+@keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.scanner{background:var(--sur);border:1px solid rgba(255,215,64,.35);border-radius:22px;margin-bottom:28px;overflow:hidden;position:relative;opacity:0;animation:up .5s .32s forwards}
+.scanner::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gld),var(--fbl),var(--ten))}
+.sc-hdr{display:flex;align-items:center;gap:16px;padding:22px 28px;cursor:pointer;transition:background .2s}
+.sc-hdr:hover{background:rgba(255,255,255,.02)}
+.sc-ttl{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:var(--gld)}
+.sc-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--mut);margin-top:2px}
+.wbadge{background:rgba(255,215,64,.12);border:1px solid rgba(255,215,64,.4);border-radius:8px;padding:5px 12px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--gld);text-transform:uppercase;white-space:nowrap}
+.toggler{font-family:'DM Mono',monospace;font-size:20px;color:var(--mut);margin-left:12px}
+.sc-body{padding:0 28px 28px;display:none}
+.sc-body.open{display:block}
+.dropz{border:2px dashed var(--bdr);border-radius:14px;padding:38px 20px;text-align:center;cursor:pointer;transition:all .25s;position:relative;background:rgba(0,0,0,.25);margin-bottom:16px}
+.dropz:hover,.dropz.over{border-color:var(--gld);background:rgba(255,215,64,.04)}
+.dropz input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop-ic{font-size:44px;margin-bottom:10px}
+.drop-t{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;margin-bottom:6px}
+.drop-s{font-family:'DM Mono',monospace;font-size:11px;color:var(--mut);line-height:1.7}
+.drop-s strong{color:var(--gld)}
+.prevwrap{position:relative;margin-bottom:14px;display:none}
+.previmg{width:100%;max-height:260px;object-fit:contain;border-radius:10px;border:1px solid var(--bdr);background:#000}
+.prevclear{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.8);border:1px solid var(--bdr);color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+.extcard{background:rgba(255,215,64,.05);border:1px solid rgba(255,215,64,.25);border-radius:12px;padding:16px 20px;margin-bottom:14px;display:none}
+.extcard.show{display:block}
+.ext-ttl{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--gld);text-transform:uppercase;margin-bottom:10px}
+.ext-row{display:flex;gap:10px;flex-wrap:wrap}
+.ext-chip{background:rgba(255,255,255,.04);border:1px solid var(--bdr);border-radius:8px;padding:8px 14px}
+.ext-lbl{font-family:'DM Mono',monospace;font-size:10px;color:var(--mut);margin-bottom:3px}
+.ext-val{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px}
+.scan-btn{width:100%;padding:14px;border-radius:12px;border:1px solid rgba(255,215,64,.5);background:linear-gradient(135deg,rgba(255,215,64,.18),rgba(64,196,255,.1));color:#fff;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;cursor:pointer;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:10px}
+.scan-btn:hover{background:linear-gradient(135deg,rgba(255,215,64,.28),rgba(64,196,255,.2));transform:translateY(-1px)}
+.scan-btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.pipeline{margin-top:16px;display:none}
+.pipeline.show{display:block}
+.pstep{display:flex;align-items:flex-start;gap:12px;padding:10px 16px;border-radius:10px;margin-bottom:8px;font-family:'DM Mono',monospace;font-size:12px;transition:all .3s}
+.pstep.wait{background:rgba(255,255,255,.02);border:1px solid var(--bdr);color:var(--mut)}
+.pstep.run{background:rgba(255,215,64,.07);border:1px solid rgba(255,215,64,.3);color:var(--gld)}
+.pstep.done{background:rgba(0,230,118,.07);border:1px solid rgba(0,230,118,.3);color:var(--grn)}
+.pstep.err{background:rgba(255,61,87,.07);border:1px solid rgba(255,61,87,.3);color:var(--red)}
+.pdot{width:8px;height:8px;border-radius:50%;background:currentColor;flex-shrink:0;margin-top:4px}
+.pstep.run .pdot{animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
+.pdet{font-size:11px;color:var(--mut);margin-top:2px}
+.sp{background:var(--sur2);border:1px solid var(--bdr);border-radius:12px;padding:18px 20px;margin-top:16px;display:none}
+.sp.show{display:block}
+.sp-ttl{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--mut);text-transform:uppercase;margin-bottom:12px}
+.sp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:14px}
+.sp-item{background:rgba(255,255,255,.03);border:1px solid var(--bdr);border-radius:8px;padding:10px 14px}
+.sp-lbl{font-family:'DM Mono',monospace;font-size:10px;color:var(--mut);margin-bottom:4px}
+.sp-val{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:#fff}
+.sp-val.ok{color:var(--grn)}
+.sp-val.miss{color:var(--mut);font-size:14px;font-family:'DM Mono',monospace}
+.apply-btn{width:100%;padding:13px;border-radius:10px;border:1px solid var(--grn);background:rgba(0,230,118,.08);color:var(--grn);font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;cursor:pointer;transition:all .2s}
+.apply-btn:hover{background:rgba(0,230,118,.15)}
+.formula{background:var(--sur);border:1px solid var(--bdr);border-radius:16px;padding:26px 30px;margin-bottom:36px;display:flex;flex-wrap:wrap;align-items:center;gap:20px;position:relative;overflow:hidden;opacity:0;animation:up .5s .4s forwards}
+.formula::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--grn),transparent)}
+.f-lbl{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--grn);text-transform:uppercase;margin-bottom:7px}
+.f-eq{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:#fff}
+.f-rules{display:flex;gap:12px;flex-wrap:wrap;margin-left:auto}
+.fbadge{display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:8px;font-family:'DM Mono',monospace;font-size:13px}
+.fbadge.g{background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:var(--grn)}
+.fbadge.r{background:rgba(255,61,87,.1);border:1px solid rgba(255,61,87,.3);color:var(--red)}
+.cap-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:36px;opacity:0;animation:up .5s .5s forwards}
+.cap-card{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:20px 24px}
+.cap-card label{display:block;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--mut);text-transform:uppercase;margin-bottom:10px}
+.ccy{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--gld)}
+.cap-wrap{display:flex;align-items:center;gap:8px}
+input[type=number]{background:transparent;border:none;border-bottom:2px solid var(--bdr);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:34px;width:130px;outline:none;transition:border-color .2s}
+input[type=number]:focus{border-bottom-color:var(--gld)}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{opacity:0}
+.mise-info{font-family:'DM Mono',monospace;font-size:12px;color:var(--mut);margin-top:8px}
+.mise-v{color:var(--gld);font-weight:500}
+.qcalc{display:flex;align-items:center;gap:10px;margin-top:8px}
+.qnum{font-family:'Bebas Neue',sans-serif;font-size:44px;line-height:1;transition:color .3s}
+.qverd{font-family:'DM Mono',monospace;font-size:13px;padding:6px 12px;border-radius:6px;transition:all .3s}
+.gcols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
+.ssec{background:var(--sur);border:1px solid var(--bdr);border-radius:20px;margin-bottom:22px;overflow:hidden;opacity:0;animation:up .5s forwards}
+.ssec:nth-child(1){animation-delay:.58s}.ssec:nth-child(2){animation-delay:.68s}.ssec:nth-child(3){animation-delay:.78s}
+.sbar{height:3px}
+.football .sbar{background:var(--fbl)}.tennis .sbar{background:var(--ten)}.hockey .sbar{background:var(--pur)}
+.shdr{display:flex;align-items:center;gap:14px;padding:18px 26px;cursor:pointer;user-select:none;transition:background .2s}
+.shdr:hover{background:rgba(255,255,255,.02)}
+.sicon{font-size:26px}
+.stitle{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px}
+.football .stitle{color:var(--fbl)}.tennis .stitle{color:var(--ten)}.hockey .stitle{color:var(--pur)}
+.ssub{font-family:'DM Mono',monospace;font-size:11px;color:var(--mut);margin-top:2px}
+.stog{margin-left:auto;font-family:'DM Mono',monospace;font-size:18px;color:var(--mut)}
+.sbody{padding:0 26px 26px;display:none}
+.sbody.open{display:block}
+.sec-lbl{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--mut);text-transform:uppercase;margin-bottom:14px}
+.igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;margin-bottom:22px}
+.ifield{display:flex;flex-direction:column;gap:7px}
+.ifield label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--mut);text-transform:uppercase}
+.ifield input{background:rgba(255,255,255,.03);border:1px solid var(--bdr);border-radius:8px;color:#fff;font-family:'DM Mono',monospace;font-size:15px;padding:9px 13px;outline:none;transition:all .2s;width:100%}
+.ifield input:focus{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.05)}
+.ifield input.aifill{border-color:var(--gld)!important;background:rgba(255,215,64,.1)!important;box-shadow:0 0 0 3px rgba(255,215,64,.12);animation:gfl .6s ease}
+@keyframes gfl{0%{background:rgba(255,215,64,.35)!important}100%{background:rgba(255,215,64,.1)!important}}
+.agrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.abox{border-radius:10px;padding:13px 15px;border:1px solid;transition:all .3s}
+.abox .albl{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;opacity:.7}
+.abox .aval{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px}
+.abox.off{background:rgba(255,255,255,.02);border-color:var(--bdr);color:var(--mut)}
+.abox.yes{background:rgba(0,230,118,.08);border-color:rgba(0,230,118,.4);color:var(--grn)}
+.abox.no{background:rgba(255,61,87,.08);border-color:rgba(255,61,87,.4);color:var(--red)}
+.vrow{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;padding:18px;border-radius:12px;border:1px solid var(--bdr);background:rgba(0,0,0,.3);margin-top:6px}
+.vnum{font-family:'Bebas Neue',sans-serif;font-size:48px;line-height:1;transition:color .3s}
+.vverd{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;padding:8px 18px;border-radius:8px;transition:all .3s}
+.vmise{font-family:'DM Mono',monospace;font-size:12px;color:var(--mut);text-align:right}
+.vmise span{display:block;font-size:16px;font-weight:500;color:var(--gld);margin-top:2px}
+.vrow.neu .vnum{color:var(--mut)}
+.vrow.neu .vverd{background:rgba(255,255,255,.05);color:var(--mut);border:1px solid var(--bdr)}
+.vrow.val .vnum{color:var(--grn)}
+.vrow.val .vverd{background:rgba(0,230,118,.12);color:var(--grn);border:1px solid rgba(0,230,118,.4)}
+.vrow.nov .vnum{color:var(--red)}
+.vrow.nov .vverd{background:rgba(255,61,87,.12);color:var(--red);border:1px solid rgba(255,61,87,.4)}
+.sep{height:1px;background:var(--bdr);margin:18px 0}
+.src-tag{display:inline-flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:11px;color:var(--mut);margin-top:14px;padding:4px 10px;border:1px solid var(--bdr);border-radius:4px}
+.ai-pill{font-family:'DM Mono',monospace;font-size:10px;padding:3px 8px;border-radius:4px;background:rgba(255,215,64,.12);border:1px solid rgba(255,215,64,.3);color:var(--gld);display:none;margin-left:6px}
+.ai-pill.on{display:inline-block}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:11px 22px;border-radius:10px;font-family:'DM Mono',monospace;font-size:13px;z-index:9999;animation:up .3s forwards;white-space:nowrap}
+.toast.ok{background:rgba(0,230,118,.1);border:1px solid var(--grn);color:var(--grn)}
+.toast.err{background:rgba(255,61,87,.1);border:1px solid var(--red);color:var(--red)}
+@media(max-width:600px){.cap-row,.gcols,.agrid{grid-template-columns:1fr}.f-rules{margin-left:0}.vnum{font-size:38px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hdr">
+  <div class="hdr-tag">Systeme IA - Paris Sportifs</div>
+  <h1>VALUE<br>BETTING</h1>
+  <div class="hdr-sub">Photo Winamax - IA lit les noms - recherche les stats - verdict instantane</div>
+</div>
+
+<div class="scanner">
+  <div class="sc-hdr" onclick="toggleSc()">
+    <span style="font-size:32px">📱</span>
+    <div style="flex:1">
+      <div class="sc-ttl">SCAN WINAMAX</div>
+      <div class="sc-sub">Photo du match → Recherche automatique des stats ⚽ Football &amp; 🎾 Tennis</div>
+    </div>
+    <div class="wbadge">IA + WEB</div>
+    <span class="toggler" id="scTog">+</span>
+  </div>
+  <div class="sc-body" id="scBody">
+
+    <div class="dropz" id="dropz">
+      <input type="file" accept="image/*" id="fileIn" onchange="handleFile(this.files[0])">
+      <div class="drop-ic">📸</div>
+      <div class="drop-t">Photo Winamax ici</div>
+      <div class="drop-s">Glisse ou clique — capture d'ecran de n'importe quel match Winamax<br>
+      L'IA lit : <strong>equipes / joueurs</strong> · <strong>cotes</strong> · <strong>sport</strong><br>
+      Puis cherche automatiquement sur <strong>FBRef</strong> &amp; <strong>Tennis Abstract</strong></div>
+    </div>
+
+    <div class="prevwrap" id="prevwrap">
+      <img id="previmg" class="previmg" src="" alt="">
+      <button class="prevclear" onclick="clearImg()">X</button>
+    </div>
+
+    <div class="extcard" id="extcard">
+      <div class="ext-ttl">Lu sur la photo Winamax</div>
+      <div class="ext-row" id="extrow"></div>
+    </div>
+
+    <button class="scan-btn" id="scanBtn" onclick="runPipeline()" disabled>
+      🔍  ANALYSER LA PHOTO &amp; CHERCHER LES STATS
+    </button>
+
+    <div class="pipeline" id="pipeline">
+      <div class="pstep wait" id="ps1"><div class="pdot"></div><div><div>📸 Lecture de la photo Winamax</div><div class="pdet" id="ps1d">En attente...</div></div></div>
+      <div class="pstep wait" id="ps2"><div class="pdot"></div><div><div>🌐 Recherche des statistiques en ligne</div><div class="pdet" id="ps2d">En attente...</div></div></div>
+      <div class="pstep wait" id="ps3"><div class="pdot"></div><div><div>🧮 Calcul des indicateurs &amp; alertes</div><div class="pdet" id="ps3d">En attente...</div></div></div>
+      <div class="pstep wait" id="ps4"><div class="pdot"></div><div><div>✅ Remplissage automatique des champs</div><div class="pdet" id="ps4d">En attente...</div></div></div>
+    </div>
+
+    <div class="sp" id="sp">
+      <div class="sp-ttl">Statistiques trouvees</div>
+      <div class="sp-grid" id="spgrid"></div>
+      <button class="apply-btn" onclick="applyStats()">✅  APPLIQUER AUX CALCULATEURS</button>
+    </div>
+
+  </div>
+</div>
+
+<div class="formula">
+  <div>
+    <div class="f-lbl">La Formule</div>
+    <div class="f-eq">(COTE x PROBABILITE) / 100</div>
+  </div>
+  <div class="f-rules">
+    <div class="fbadge g">✅ &gt; 1,05 → VALUE</div>
+    <div class="fbadge r">❌ &lt; 1,05 → PAS DE VALUE</div>
+  </div>
+</div>
+
+<div class="cap-row">
+  <div class="cap-card">
+    <label>Capital Actuel</label>
+    <div class="cap-wrap"><span class="ccy">€</span><input type="number" id="capital" value="100" min="1" oninput="updateCap()"></div>
+    <div class="mise-info">Mise (2%) : <span class="mise-v" id="miseG">2,00 €</span></div>
+  </div>
+  <div class="cap-card">
+    <label>Calculateur Rapide</label>
+    <div class="gcols">
+      <div class="ifield"><label>Cote</label><input type="number" id="gCote" placeholder="2.10" step="0.01" oninput="quickCalc()"></div>
+      <div class="ifield"><label>Proba %</label><input type="number" id="gProba" placeholder="55" oninput="quickCalc()"></div>
+    </div>
+    <div class="qcalc">
+      <div class="qnum" id="qNum" style="color:var(--mut)">-</div>
+      <div class="qverd" id="qVerd" style="background:rgba(255,255,255,.05);color:var(--mut);border:1px solid var(--bdr)">Entrer les donnees</div>
+    </div>
+  </div>
+</div>
+
+<div id="sections"></div>
+</div>
+
+<script>
+var imgB64 = null;
+var pipelineData = null;
+
+// ── CAPITAL
+function cap(){ return parseFloat(document.getElementById('capital').value)||100; }
+function mise(){ return (cap()*.02).toFixed(2); }
+function updateCap(){
+  document.getElementById('miseG').textContent = mise()+' €';
+  ['football','tennis','hockey'].forEach(function(s){
+    var el = document.getElementById('mise_'+s);
+    if(el) el.textContent = mise()+' €';
+  });
+}
+function quickCalc(){
+  var c = parseFloat(document.getElementById('gCote').value);
+  var p = parseFloat(document.getElementById('gProba').value);
+  var n = document.getElementById('qNum');
+  var v = document.getElementById('qVerd');
+  if(!c||!p){
+    n.style.color='var(--mut)'; n.textContent='-';
+    v.textContent='Entrer les donnees';
+    v.style.cssText='background:rgba(255,255,255,.05);color:var(--mut);border:1px solid var(--bdr)';
+    return;
+  }
+  var val = ((c*p)/100).toFixed(3);
+  n.textContent = val;
+  if(val>1.05){
+    n.style.color='var(--grn)';
+    v.textContent='VALUE';
+    v.style.cssText='background:rgba(0,230,118,.12);color:var(--grn);border:1px solid rgba(0,230,118,.4)';
+  } else {
+    n.style.color='var(--red)';
+    v.textContent='PAS DE VALUE';
+    v.style.cssText='background:rgba(255,61,87,.12);color:var(--red);border:1px solid rgba(255,61,87,.4)';
+  }
+}
+
+// ── SCANNER UI
+function toggleSc(){
+  var b = document.getElementById('scBody');
+  var t = document.getElementById('scTog');
+  var open = b.classList.toggle('open');
+  t.textContent = open ? '-' : '+';
+}
+
+function handleFile(file){
+  if(!file) return;
+  var r = new FileReader();
+  r.onload = function(e){
+    imgB64 = e.target.result.split(',')[1];
+    document.getElementById('previmg').src = e.target.result;
+    document.getElementById('prevwrap').style.display = 'block';
+    document.getElementById('dropz').style.display = 'none';
+    document.getElementById('scanBtn').disabled = false;
+    resetPipe();
+    document.getElementById('sp').classList.remove('show');
+    document.getElementById('extcard').classList.remove('show');
+  };
+  r.readAsDataURL(file);
+}
+
+function clearImg(){
+  imgB64=null; pipelineData=null;
+  document.getElementById('prevwrap').style.display='none';
+  document.getElementById('dropz').style.display='block';
+  document.getElementById('scanBtn').disabled=true;
+  document.getElementById('extcard').classList.remove('show');
+  document.getElementById('pipeline').classList.remove('show');
+  document.getElementById('sp').classList.remove('show');
+  document.getElementById('fileIn').value='';
+  resetPipe();
+}
+
+var dz = document.getElementById('dropz');
+dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('over');});
+dz.addEventListener('dragleave',function(){dz.classList.remove('over');});
+dz.addEventListener('drop',function(e){e.preventDefault();dz.classList.remove('over');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);});
+
+function resetPipe(){
+  ['ps1','ps2','ps3','ps4'].forEach(function(id){
+    document.getElementById(id).className='pstep wait';
+    document.getElementById(id+'d').textContent='En attente...';
+  });
+}
+function pstate(id,state,detail){
+  document.getElementById(id).className='pstep '+state;
+  if(detail) document.getElementById(id+'d').textContent=detail;
+}
+
+// ── API — boucle tool_use complète (jusqu'à 8 tours)
+async function callAPI(messages, useSearch){
+  var tools = useSearch ? [{type:'web_search_20250305',name:'web_search'}] : null;
+  var history = messages.slice();
+  var maxTurns = 8;
+
+  for(var turn = 0; turn < maxTurns; turn++){
+    var body = {
+      model:'claude-sonnet-4-20250514',
+      max_tokens:2000,
+      messages:history
+    };
+    if(tools) body.tools = tools;
+
+    // Timeout 90s par appel
+    var ctrl = new AbortController();
+    var tid = setTimeout(function(){ctrl.abort();}, 90000);
+    var res;
+    try {
+      res = await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(body),
+        signal:ctrl.signal
+      });
+    } catch(e) {
+      clearTimeout(tid);
+      throw new Error(e.name==='AbortError' ? 'Timeout - réessaie dans quelques secondes' : 'Réseau : '+e.message);
+    }
+    clearTimeout(tid);
+
+    if(!res.ok){
+      var errBody = await res.text().catch(function(){return res.statusText;});
+      var msg = errBody.slice(0,200);
+      try{ var parsed = JSON.parse(errBody); msg = (parsed.error&&parsed.error.message)||msg; }catch(e){}
+      throw new Error('Erreur API '+res.status+' : '+msg.slice(0,120));
+    }
+
+    var data = await res.json();
+
+    // Si l'API a fini (end_turn ou pas de tool_use) → on retourne
+    if(data.stop_reason !== 'tool_use') return data;
+
+    // Sinon on traite les tool_use et on continue la boucle
+    var toolUseBlocks = (data.content||[]).filter(function(b){ return b.type==='tool_use'; });
+    if(toolUseBlocks.length === 0) return data; // sécurité
+
+    // Ajoute le tour assistant dans l'historique
+    history.push({role:'assistant', content:data.content});
+
+    // Ajoute les tool_results (le web search s'exécute côté serveur Anthropic,
+    // les résultats sont dans les blocs tool_result qu'on doit renvoyer)
+    var toolResults = toolUseBlocks.map(function(b){
+      // Les résultats de recherche sont dans b.content si présents, sinon on renvoie un placeholder
+      var resultContent = b.content || (b.output ? b.output : 'Résultat disponible dans la réponse suivante');
+      return {
+        type:'tool_result',
+        tool_use_id: b.id,
+        content: typeof resultContent === 'string' ? resultContent : JSON.stringify(resultContent)
+      };
+    });
+    history.push({role:'user', content:toolResults});
+  }
+
+  throw new Error('Trop de tours de recherche - réessaie');
+}
+
+function getText(data){
+  var parts = [];
+  (data.content||[]).forEach(function(b){
+    if(b.type==='text' && b.text) parts.push(b.text);
+  });
+  return parts.join('\n');
+}
+
+function parseJ(text){
+  try{
+    var clean = text.replace(/```json|```/g,'').trim();
+    var m = clean.match(/\{[\s\S]*\}/);
+    return m ? JSON.parse(m[0]) : null;
+  }catch(e){return null;}
+}
+
+// ── STEP 1: Read photo
+async function step1(){
+  pstate('ps1','run','Analyse de la capture Winamax...');
+  var prompt = 'Tu analyses une capture d\'ecran de l\'application Winamax (paris sportifs francais). Extrais precisement : sport (football ou tennis uniquement), team1 (equipe/joueur 1 exactement comme ecrit), team2 (equipe/joueur 2), cote1 (cote victoire team1, nombre decimal), cote2 (cote victoire team2), coteNul (cote nul si football, null si tennis), competition (nom competition si visible), date (date si visible). Reponds UNIQUEMENT avec ce JSON valide sans texte autour : {"sport":"football","team1":"...","team2":"...","cote1":null,"cote2":null,"coteNul":null,"competition":null,"date":null}';
+
+  var data = await callAPI([{role:'user',content:[
+    {type:'image',source:{type:'base64',media_type:'image/jpeg',data:imgB64}},
+    {type:'text',text:prompt}
+  ]}], false);
+
+  var parsed = parseJ(getText(data));
+  if(!parsed||!parsed.sport) throw new Error('Impossible de lire les infos du match sur la photo');
+  pstate('ps1','done', parsed.sport.toUpperCase()+': '+parsed.team1+' vs '+parsed.team2);
+  return parsed;
+}
+
+// ── STEP 2: Search stats
+async function step2(info){
+  pstate('ps2','run','Recherche en cours... (15-25s)');
+
+  // Ticker pour montrer que ça travaille
+  var dots = 0;
+  var ticker = setInterval(function(){
+    dots = (dots+1)%4;
+    var d = '.'.repeat(dots+1);
+    pstate('ps2','run','Recherche web en cours'+d+' (peut prendre 20-30s)');
+  }, 2000);
+
+  var prompt = '';
+  if(info.sport==='football'){
+    prompt = 'Je prepare un pari sur le match de football : '+info.team1+' vs '+info.team2+(info.competition?' ('+info.competition+')':'')+'. Utilise la recherche web pour trouver les stats xG recentes de ces equipes. Cherche sur FBRef.com ou Soccerway. Je veux : xG moyen de '+info.team1+' sur les 5 derniers matchs (xgA), xGC moyen de '+info.team2+' sur 5 matchs (xgcB), la somme xG totale (xgTotal), xGC du favori sur 5 matchs (xgcFav). Reponds UNIQUEMENT avec ce JSON exact, sans texte autour, sans markdown : {"xgA":null,"xgcB":null,"xgTotal":null,"xgcFav":null,"favori":"nom","source":"site","notes":"resume"}';
+  } else {
+    prompt = 'Je prepare un pari sur le match de tennis : '+info.team1+' vs '+info.team2+(info.competition?' ('+info.competition+')':'')+'. Utilise la recherche web pour trouver les stats de service. Cherche sur tennisabstract.com ou atptour.com. Je veux : Hold% de '+info.team1+' cette saison (hold1), Hold% de '+info.team2+' (hold2), Hold% du favori (holdFav), Break% de celui qui brise le favori (breakAdv). Reponds UNIQUEMENT avec ce JSON exact, sans texte autour, sans markdown : {"hold1":null,"hold2":null,"holdFav":null,"breakAdv":null,"favori":"nom","surface":"surface","source":"site","notes":"resume"}';
+  }
+
+  var data, text, parsed;
+  try {
+    data = await callAPI([{role:'user',content:prompt}], true);
+    text = getText(data);
+    parsed = parseJ(text);
+  } finally {
+    clearInterval(ticker);
+  }
+
+  if(parsed && Object.values(parsed).some(function(v){ return v !== null && typeof v === 'number'; })){
+    pstate('ps2','done','✅ Stats trouvees via '+(parsed.source||'web'));
+  } else {
+    // Tentative fallback : demander de reformater sans recherche
+    pstate('ps2','run','Reformatage des données...');
+    try {
+      var fb = await callAPI([
+        {role:'user',content:prompt},
+        {role:'assistant',content: data ? (data.content||[]) : [{type:'text',text:text||''}]},
+        {role:'user',content:'Reformate ta réponse en JSON pur uniquement, sans aucun texte autour ni markdown. Juste {"sport":..., ...}'}
+      ], false);
+      var text2 = getText(fb);
+      var p2 = parseJ(text2);
+      if(p2) parsed = p2;
+    } catch(e2) {}
+    pstate('ps2', parsed ? 'done' : 'err', parsed ? 'Stats recuperees' : 'Stats non trouvees - remplissez manuellement');
+  }
+  return {stats: parsed||{}, raw: text||''};
+}
+
+// ── STEP 3: Calc proba
+function step3(info, favori){
+  pstate('ps3','run','Calcul de la probabilite implicite...');
+  var coteFav = null;
+  if(favori){
+    var f = favori.toLowerCase();
+    if(info.team1&&f.includes(info.team1.toLowerCase())) coteFav = info.cote1;
+    else if(info.team2&&f.includes(info.team2.toLowerCase())) coteFav = info.cote2;
+  }
+  if(!coteFav) coteFav = Math.min(info.cote1||99, info.cote2||99);
+  var proba = (coteFav&&coteFav>1) ? parseFloat(((1/coteFav)*100).toFixed(1)) : null;
+  pstate('ps3','done', coteFav ? 'Cote favori: '+coteFav+' → Proba: ~'+proba+'%' : 'Calcule');
+  return {coteFav:coteFav, proba:proba};
+}
+
+// ── FULL PIPELINE
+async function runPipeline(){
+  var btn = document.getElementById('scanBtn');
+  btn.disabled = true;
+  document.getElementById('pipeline').classList.add('show');
+  document.getElementById('sp').classList.remove('show');
+  document.getElementById('extcard').classList.remove('show');
+  resetPipe();
+
+  var info = null;
+  var stats = {};
+
+  // Step 1
+  try {
+    info = await step1();
+    showExtCard(info);
+  } catch(e) {
+    pstate('ps1','err',e.message.slice(0,80));
+    pstate('ps2','err','Bloque'); pstate('ps3','err','-'); pstate('ps4','err','-');
+    showToast('Erreur lecture photo: '+e.message.slice(0,50), 'err');
+    btn.disabled=false; return;
+  }
+
+  // Step 2
+  try {
+    var r2 = await step2(info);
+    stats = r2.stats||{};
+  } catch(e) {
+    pstate('ps2','err','Timeout - stats vides, completez manuellement');
+    stats = {};
+    showToast('Stats non trouvees - completez les champs manuellement', 'err');
+  }
+
+  // Step 3
+  var coteFav, proba;
+  try {
+    var r3 = step3(info, stats.favori);
+    coteFav=r3.coteFav; proba=r3.proba;
+    pipelineData = {info:info, stats:stats, coteFav:coteFav, proba:proba};
+  } catch(e) {
+    pstate('ps3','err',e.message);
+  }
+
+  // Step 4
+  pstate('ps4','run','Preparation de l\'affichage...');
+  try {
+    buildPreview(info, stats, coteFav, proba);
+    pstate('ps4','done','Pret - cliquez Appliquer');
+  } catch(e) {
+    pstate('ps4','err',e.message);
+  }
+
+  btn.disabled=false;
+}
+
+function showExtCard(info){
+  var chips = [
+    {l:'Sport', v:info.sport?info.sport.toUpperCase():'?'},
+    {l:info.sport==='tennis'?'Joueur 1':'Equipe 1', v:info.team1||'?'},
+    {l:info.sport==='tennis'?'Joueur 2':'Equipe 2', v:info.team2||'?'},
+    {l:'Cote 1', v:info.cote1||'?'},
+    {l:'Cote 2', v:info.cote2||'?'}
+  ];
+  if(info.competition) chips.push({l:'Competition',v:info.competition});
+  if(info.coteNul) chips.push({l:'Cote Nul',v:info.coteNul});
+  document.getElementById('extrow').innerHTML = chips.map(function(c){
+    return '<div class="ext-chip"><div class="ext-lbl">'+c.l+'</div><div class="ext-val">'+c.v+'</div></div>';
+  }).join('');
+  document.getElementById('extcard').classList.add('show');
+}
+
+function buildPreview(info, stats, coteFav, proba){
+  var items = [];
+  if(info.sport==='football'){
+    items = [
+      {l:'xG Moy Equipe A',v:stats.xgA},
+      {l:'xGC Moy Equipe B',v:stats.xgcB},
+      {l:'Somme xG Total',v:stats.xgTotal},
+      {l:'xGC Favori (5M)',v:stats.xgcFav},
+      {l:'Cote Favori',v:coteFav},
+      {l:'Proba Implicite',v:proba?proba+'%':null},
+      {l:'Favori',v:stats.favori},
+      {l:'Source',v:stats.source}
+    ];
+  } else {
+    items = [
+      {l:'Hold% Joueur 1',v:stats.hold1?stats.hold1+'%':null},
+      {l:'Hold% Joueur 2',v:stats.hold2?stats.hold2+'%':null},
+      {l:'Hold% Favori',v:stats.holdFav?stats.holdFav+'%':null},
+      {l:'Break% Adversaire',v:stats.breakAdv?stats.breakAdv+'%':null},
+      {l:'Surface',v:stats.surface},
+      {l:'Cote Favori',v:coteFav},
+      {l:'Proba Implicite',v:proba?proba+'%':null},
+      {l:'Source',v:stats.source}
+    ];
+  }
+  var html = items.map(function(it){
+    var found = it.v!=null&&it.v!=='';
+    return '<div class="sp-item"><div class="sp-lbl">'+it.l+'</div><div class="sp-val '+(found?'ok':'miss')+'">'+(found?it.v:'non trouve')+'</div></div>';
+  }).join('');
+  if(stats.notes){
+    html += '<div class="sp-item" style="grid-column:1/-1"><div class="sp-lbl">Notes IA</div><div style="font-family:\'DM Mono\',monospace;font-size:12px;color:var(--mut);line-height:1.6">'+stats.notes+'</div></div>';
+  }
+  document.getElementById('spgrid').innerHTML = html;
+  document.getElementById('sp').classList.add('show');
+}
+
+function applyStats(){
+  if(!pipelineData) return;
+  var d = pipelineData;
+  var sport = d.info.sport;
+  if(!['football','tennis'].includes(sport)){ showToast('Sport non supporte', 'err'); return; }
+
+  var body = document.getElementById('body_'+sport);
+  var tog = document.getElementById('tog_'+sport);
+  if(body&&!body.classList.contains('open')){ body.classList.add('open'); tog.textContent='-'; }
+
+  var maps = {
+    football:{cote:'cote',proba:'proba',xgA:'xgA',xgcB:'xgcB',xgTotal:'xgTotal',xgcFav:'xgcFav'},
+    tennis:{cote:'cote',proba:'proba',hold1:'hold1',hold2:'hold2',holdFav:'holdFav',breakAdv:'breakAdv'}
+  };
+
+  var toFill = {
+    cote: d.coteFav,
+    proba: d.proba,
+    xgA: d.stats.xgA,
+    xgcB: d.stats.xgcB,
+    xgTotal: d.stats.xgTotal,
+    xgcFav: d.stats.xgcFav,
+    hold1: d.stats.hold1,
+    hold2: d.stats.hold2,
+    holdFav: d.stats.holdFav,
+    breakAdv: d.stats.breakAdv
+  };
+
+  var filled = 0;
+  Object.keys(maps[sport]).forEach(function(dk){
+    var fid = maps[sport][dk];
+    var val = toFill[dk];
+    if(val!=null){
+      var el = document.getElementById(sport+'_'+fid);
+      if(el){ el.value=val; el.classList.add('aifill'); setTimeout(function(){el.classList.remove('aifill');},2500); filled++; }
+    }
+  });
+
+  calcSport(sport);
+  var pill = document.getElementById('aipill_'+sport);
+  if(pill) pill.classList.add('on');
+  document.querySelector('.ssec.'+sport).scrollIntoView({behavior:'smooth',block:'start'});
+  showToast(filled+' champ(s) remplis automatiquement', 'ok');
+}
+
+// ── SPORTS
+var sports = [
+  {
+    id:'football',label:'Football',icon:'⚽',sub:'Strategie xG - Expected Goals',source:'FBRef / Soccerway',
+    fields:[
+      {id:'cote',label:'Cote Favori',ph:'2.20'},
+      {id:'proba',label:'Proba % estimee',ph:'55'},
+      {id:'xgA',label:'xG Moy Equipe A',ph:'1.4'},
+      {id:'xgcB',label:'xGC Moy Equipe B',ph:'1.2'},
+      {id:'xgTotal',label:'Somme xG des 2',ph:'2.0'},
+      {id:'xgcFav',label:'xGC Favori (5M)',ph:'0.60'}
+    ],
+    alerts:[
+      {id:'u25',label:'Under 2,5 Buts',desc:'Somme xG < 2,2',check:function(v){return v.xgTotal>0&&v.xgTotal<2.2;},yes:'UNDER 2,5 - Peu de buts attendus',no:'xG total >= 2,2'},
+      {id:'cs',label:'Clean Sheet Favori',desc:'xGC favori < 0,70 / 5 matchs',check:function(v){return v.xgcFav>0&&v.xgcFav<0.70;},yes:'CLEAN SHEET probable',no:'xGC trop eleve'}
+    ],
+    computed:function(v){return (v.xgA&&v.xgcB)?'Score estime : '+(parseFloat(v.xgA)+parseFloat(v.xgcB)).toFixed(2)+' buts attendus':null;}
+  },
+  {
+    id:'tennis',label:'Tennis',icon:'🎾',sub:'Strategie des Serveurs - Hold %',source:'Tennis Abstract',
+    fields:[
+      {id:'cote',label:'Cote Favori',ph:'1.85'},
+      {id:'proba',label:'Proba % estimee',ph:'60'},
+      {id:'hold1',label:'Hold % Joueur 1',ph:'82'},
+      {id:'hold2',label:'Hold % Joueur 2',ph:'79'},
+      {id:'holdFav',label:'Hold % Favori',ph:'87'},
+      {id:'breakAdv',label:'Break % Adversaire',ph:'12'}
+    ],
+    alerts:[
+      {id:'ov22',label:'Over 22,5 Jeux',desc:'Hold% J1 > 80% ET Hold% J2 > 80%',check:function(v){return v.hold1>80&&v.hold2>80;},yes:'OVER - Sets longs (6-4, 7-6)',no:'Conditions non remplies'},
+      {id:'v20',label:'Victoire 2-0',desc:'Hold% Favori > 85% ET Break% Adv < 15%',check:function(v){return v.holdFav>85&&v.breakAdv<15;},yes:'2-0 PROBABLE - Service dominant',no:'Conditions non remplies'}
+    ]
+  },
+  {
+    id:'hockey',label:'Hockey',icon:'🏒',sub:'Strategie Power Play - PP% / PK%',source:'Elite Prospects / NHL',
+    fields:[
+      {id:'cote',label:'Cote',ph:'1.70'},
+      {id:'proba',label:'Proba %',ph:'65'},
+      {id:'pp',label:'PP% Equipe',ph:'27'},
+      {id:'pk',label:'PK% Adversaire',ph:'72'},
+      {id:'save1',label:'Save% Gardien 1',ph:'93'},
+      {id:'save2',label:'Save% Gardien 2',ph:'91'}
+    ],
+    alerts:[
+      {id:'pl',label:'Puck Line (-1,5)',desc:'PP% > 25% ET PK% Adv < 75%',check:function(v){return v.pp>25&&v.pk<75;},yes:'PUCK LINE - Ecart probable',no:'Conditions non remplies'},
+      {id:'u55',label:'Under 5,5 Buts',desc:'Save% G1 > 92% ET Save% G2 > 92%',check:function(v){return v.save1>92&&v.save2>92;},yes:'UNDER 5,5 - Gardiens dominants',no:'Save% insuffisant'}
+    ]
+  }
+];
+
+function buildSecs(){
+  var cont = document.getElementById('sections');
+  sports.forEach(function(sp){
+    var div = document.createElement('div');
+    div.className = 'ssec '+sp.id;
+    var fhtml = sp.fields.map(function(f){
+      return '<div class="ifield"><label>'+f.label+'</label><input type="number" id="'+sp.id+'_'+f.id+'" placeholder="'+f.ph+'" step="0.01" oninput="calcSport(\''+sp.id+'\')"></div>';
+    }).join('');
+    var ahtml = sp.alerts.map(function(a){
+      return '<div class="abox off" id="ab_'+sp.id+'_'+a.id+'"><div class="albl">'+a.label+'</div><div class="aval" id="av_'+sp.id+'_'+a.id+'">- '+a.desc+'</div></div>';
+    }).join('');
+    div.innerHTML = '<div class="sbar"></div>'+
+      '<div class="shdr" onclick="toggleSp(\''+sp.id+'\')">'+
+        '<span class="sicon">'+sp.icon+'</span>'+
+        '<div><div style="display:flex;align-items:center">'+
+          '<div class="stitle">'+sp.label+'</div>'+
+          '<span class="ai-pill" id="aipill_'+sp.id+'">IA</span>'+
+        '</div><div class="ssub">'+sp.sub+'</div></div>'+
+        '<span class="stog" id="tog_'+sp.id+'">+</span>'+
+      '</div>'+
+      '<div class="sbody" id="body_'+sp.id+'">'+
+        '<div class="sec-lbl">Parametres</div>'+
+        '<div class="igrid">'+fhtml+'</div>'+
+        '<div class="sep"></div>'+
+        '<div class="sec-lbl">Alertes Strategiques</div>'+
+        '<div class="agrid">'+ahtml+'</div>'+
+        (sp.computed?'<div id="comp_'+sp.id+'" style="margin-bottom:12px;color:var(--gld);font-family:\'DM Mono\',monospace;font-size:13px"></div>':'')+
+        '<div class="sep"></div>'+
+        '<div class="sec-lbl">Resultat Value</div>'+
+        '<div class="vrow neu" id="vr_'+sp.id+'">'+
+          '<div><div style="font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:2px;color:var(--mut);text-transform:uppercase">Valeur</div><div class="vnum" id="vn_'+sp.id+'">-</div></div>'+
+          '<div class="vverd" id="vv_'+sp.id+'">Entrer les donnees</div>'+
+          '<div class="vmise">Mise conseillee<br><span id="mise_'+sp.id+'">'+mise()+' €</span></div>'+
+        '</div>'+
+        '<div class="src-tag">📊 '+sp.source+'</div>'+
+      '</div>';
+    cont.appendChild(div);
+  });
+}
+
+function toggleSp(id){
+  var b = document.getElementById('body_'+id);
+  var t = document.getElementById('tog_'+id);
+  var open = b.classList.contains('open');
+  b.classList.toggle('open',!open);
+  t.textContent = open ? '+' : '-';
+}
+
+function gv(sp,fi){
+  var el = document.getElementById(sp+'_'+fi);
+  return el ? (parseFloat(el.value)||0) : 0;
+}
+
+function calcSport(sid){
+  var sp = sports.find(function(s){return s.id===sid;});
+  var v = {};
+  sp.fields.forEach(function(f){ v[f.id]=gv(sid,f.id); });
+  var has = sp.fields.some(function(f){return v[f.id]>0;});
+
+  sp.alerts.forEach(function(a){
+    var box = document.getElementById('ab_'+sid+'_'+a.id);
+    var txt = document.getElementById('av_'+sid+'_'+a.id);
+    if(!has){ box.className='abox off'; txt.textContent='- '+a.desc; return; }
+    var ok = a.check(v);
+    box.className = ok ? 'abox yes' : 'abox no';
+    txt.textContent = (ok?'✅ ':'❌ ')+(ok?a.yes:a.no);
+  });
+
+  if(sp.computed){
+    var el = document.getElementById('comp_'+sid);
+    if(el) el.textContent = sp.computed(v)||'';
+  }
+
+  var cote=v.cote, proba=v.proba;
+  var ne=document.getElementById('vn_'+sid);
+  var ve=document.getElementById('vv_'+sid);
+  var re=document.getElementById('vr_'+sid);
+  if(!cote||!proba){ ne.textContent='-'; ve.textContent='Entrer les donnees'; re.className='vrow neu'; return; }
+  var val = ((cote*proba)/100).toFixed(3);
+  ne.textContent=val;
+  re.className = val>1.05?'vrow val':'vrow nov';
+  ve.textContent = val>1.05?'✅ VALUE - MISER':'❌ PAS DE VALUE';
+}
+
+function showToast(msg,type){
+  var t=document.createElement('div');
+  t.className='toast '+(type||'ok');
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(function(){t.remove();},3500);
+}
+
+buildSecs();
+updateCap();
+</script>
+</body>
+</html>
